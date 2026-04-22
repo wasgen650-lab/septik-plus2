@@ -18,11 +18,11 @@ export default async function handler(req, res) {
   }
 
   // Credentials from environment variables
-  const tgBotToken = process.env.TG_BOT_TOKEN;
-  const tgChatIds = process.env.TG_CHAT_IDS ? process.env.TG_CHAT_IDS.split(',') : [];
+  const tgBotToken = process.env.TELEGRAM_BOT_TOKEN;
+  const tgChatId = process.env.TELEGRAM_CHAT_ID;
 
-  if (!tgBotToken || tgChatIds.length === 0) {
-    console.error('Missing TG_BOT_TOKEN or TG_CHAT_IDS');
+  if (!tgBotToken || !tgChatId) {
+    console.error('Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID');
     return res.status(500).json({ ok: false, error: 'Server configuration error' });
   }
 
@@ -51,39 +51,27 @@ export default async function handler(req, res) {
     msg += `Неизвестная форма: ${JSON.stringify(input)}`;
   }
 
-  // Send to all Telegram chats
+  // Send to Telegram
   const url = `https://api.telegram.org/bot${tgBotToken}/sendMessage`;
-  let allOk = true;
 
   try {
-    for (const chatId of tgChatIds) {
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: msg,
-            parse_mode: 'HTML',
-            disable_web_page_preview: true
-          })
-        });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: tgChatId,
+        text: msg,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      })
+    });
 
-        const result = await response.json();
-        if (!response.ok || !result.ok) {
-          console.error(`Failed to send to chat ${chatId}:`, result);
-          allOk = false;
-        }
-      } catch (error) {
-        console.error(`Error sending to chat ${chatId}:`, error);
-        allOk = false;
-      }
-    }
-
-    if (allOk) {
+    const result = await response.json();
+    if (response.ok && result.ok) {
       return res.status(200).json({ ok: true });
     } else {
-      return res.status(500).json({ ok: false, error: 'Failed to send to some chats' });
+      console.error('Failed to send to Telegram:', result);
+      return res.status(500).json({ ok: false, error: 'Failed to send message' });
     }
   } catch (error) {
     console.error('API Error:', error);
