@@ -1,0 +1,18 @@
+# Лог-файлы
+*.log
+tg_errors.log
+
+# Чувствительные данные
+config.php
+.env
+
+# Редакторы
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Временные файлы
+*.tmp
+*.bak
