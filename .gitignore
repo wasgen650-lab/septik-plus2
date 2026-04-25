@@ -6,6 +6,9 @@ tg_errors.log
 config.php
 .env
 
+# Node.js
+node_modules/
+
 # Редакторы
 .DS_Store
 Thumbs.db
