@@ -1,47 +1,37 @@
 # Развертывание на Vercel
 
-## Шаг 1: Установка переменных окружения
+## Переменные окружения
 
 В панели Vercel для проекта `septik-plus`:
 1. Перейдите в **Settings** → **Environment Variables**
-2. Добавьте две переменные:
+2. Добавьте переменные:
+
+| Имя | Значение |
+|-----|----------|
+| `TG_BOT_TOKEN` | Токен Telegram бота (например: `8632041506:AAGLfnE...`) |
+| `TG_CHAT_IDS` | ID чатов через запятую (например: `8029756633,7332528461`) |
+
+## Структура проекта
 
 ```
-TG_BOT_TOKEN = 8632041506:AAGLfnE--AoAwsHM6wBra-rQt5p3Txzil98
-TG_CHAT_IDS = 8029756633,7332528461
+septik-plus2/
+├── index.html      # Главная страница
+├── api/
+│   └── send.js     # Serverless функция для отправки в Telegram
+├── vercel.json     # Конфигурация Vercel
+└── package.json    # Node.js dependencies
 ```
 
-## Шаг 2: Push изменений в GitHub
+## Как работает:
 
-```bash
-git add .
-git commit -m "Fix: Migrate PHP API to Node.js for Vercel"
-git push origin main
-```
+1. Форма на сайте отправляет POST на `/api/send`
+2. Vercel вызывает `api/send.js`
+3. Функция читает `TG_BOT_TOKEN` и `TG_CHAT_IDS` из env
+4. Отправляет сообщение во ВСЕ указанные чаты Telegram
+5. Возвращает `{ ok: true }`
 
-## Что было исправлено:
+## Проверка после деплоя:
 
-✅ **api/send.js** - новая Node.js serverless функция (вместо send.php)
-✅ **index.html** - обновлен путь API: `/api/send` (вместо `api/send.php`)
-✅ **package.json** - конфигурация Node.js
-✅ **vercel.json** - маршруты для Vercel
-
-## Как это работает:
-
-1. Когда вы отправляете форму, она делает POST запрос к `/api/send`
-2. Vercel перенаправляет это на `api/send.js`
-3. Функция берет `TG_BOT_TOKEN` и `TG_CHAT_IDS` из переменных окружения
-4. Отправляет сообщение в оба чата Telegram
-5. Возвращает `{ ok: true }` при успехе
-
-## Проверка:
-
-После push'а:
-- Vercel автоматически пересоберет проект
-- Проверьте вкладку **Deployments** на vercel.com
-- Откройте сайт и попробуйте отправить форму
-- Сообщение должно прийти в оба чата Telegram
-
-## Безопасность:
-
-⚠️ **Важно:** Токен бота и chat ID-ы теперь хранятся в переменных окружения Vercel (защищенное хранилище), а не в коде.
+1. Откройте ваш сайт на Vercel
+2. Заполните форму и отправьте
+3. Проверьте Telegram — сообщение должно прийти во все чаты

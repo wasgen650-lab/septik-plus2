@@ -17,14 +17,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: 'No data' });
   }
 
-  // Credentials from environment variables
-  const tgBotToken = process.env.TELEGRAM_BOT_TOKEN;
-  const tgChatId = process.env.TELEGRAM_CHAT_ID;
+  // Credentials from environment variables (как в DEPLOY.md)
+  const tgBotToken = process.env.TG_BOT_TOKEN;
+  const tgChatIdsStr = process.env.TG_CHAT_IDS;
 
-  if (!tgBotToken || !tgChatId) {
-    console.error('Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID');
+  if (!tgBotToken || !tgChatIdsStr) {
+    console.error('Missing TG_BOT_TOKEN or TG_CHAT_IDS');
     return res.status(500).json({ ok: false, error: 'Server configuration error' });
   }
+
+  // Parse chat IDs (split by comma)
+  const tgChatIds = tgChatIdsStr.split(',').map(id => id.trim());
 
   const form = input.form || '';
   let msg = '<b>Новая заявка с сайта Септик-Плюс</b>\n\n';
@@ -51,26 +54,30 @@ export default async function handler(req, res) {
     msg += `Неизвестная форма: ${JSON.stringify(input)}`;
   }
 
-  // Send to Telegram
+  // Send to all Telegram chats
   const url = `https://api.telegram.org/bot${tgBotToken}/sendMessage`;
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: tgChatId,
-        text: msg,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true
-      })
-    });
+    const results = await Promise.all(
+      tgChatIds.map(chatId => 
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: msg,
+            parse_mode: 'HTML',
+            disable_web_page_preview: true
+          })
+        })
+      )
+    );
 
-    const result = await response.json();
-    if (response.ok && result.ok) {
+    const allOk = results.every(r => r.ok);
+    if (allOk) {
       return res.status(200).json({ ok: true });
     } else {
-      console.error('Failed to send to Telegram:', result);
+      console.error('Failed to send to some Telegram chats');
       return res.status(500).json({ ok: false, error: 'Failed to send message' });
     }
   } catch (error) {
