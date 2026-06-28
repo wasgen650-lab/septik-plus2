@@ -5,7 +5,7 @@
 
 const https = require('https');
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8888279961:AAFy9JV_1-wziF5kSYabn_Jtr-UX6vxi4NQ';
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8526980800:AAFEsBggWavn-qocaikwhXzvw81YCLn9tag';
 const OPENHANDS_API_KEY = process.env.OPENHANDS_API_KEY;
 const ALLOWED_USER_ID = process.env.ALLOWED_USER_ID || null;
 
